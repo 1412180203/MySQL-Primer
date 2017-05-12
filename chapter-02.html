@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-02</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第2章 数据库和表的基本操作</h1>
+	<h2>2.1 数据库基本知识</h2>
+	<p>创建数据库</p>
+	<code>
+		create database <span class="tip">数据库名称</span>;
+	</code>
+	<p>查看数据库</p>
+	<code>
+		show databases;
+	</code>
+	<p>查看某个已经创建的数据库信息</p>
+	<code>
+		show create database <span class="tip">数据库名称</span>;
+	</code>
+	<p>修改数据库的编码</p>
+	<code>
+		alter database <span class="tip">数据库名称</span> default character set <span class="tip">编码方式</span> collate <span class="tip">编码方式</span>_bin;
+	</code>
+	<p>删除数据库</p>
+	<code>
+		drop database <span class="tip">数据库名称</span>;
+	</code>
+	<h2>2.2 数据类型</h2>
+	<h3>整数类型</h3>
+	<table>
+		<caption>MySQL 整数类型</caption>
+		<tr>
+			<th>数据类型</th>
+			<th>字节数</th>
+			<th>无符号数的取值范围</th>
+			<th>有符号数的取值范围</th>
+		</tr>
+		<tr>
+			<td>TINYINT</td>
+			<td>1</td>
+			<td>0 ~ 255</td>
+			<td>-128 ~ 127</td>
+		</tr>
+		<tr>
+			<td>SMALLINT</td>
+			<td>2</td>
+			<td>0 ~ 65535</td>
+			<td>-32768 ~ 32768</td>
+		</tr>
+		<tr>
+			<td>MEDIUMINT</td>
+			<td>3</td>
+			<td>0 ~ 16777215</td>
+			<td>-8388608 ~ 8388608</td>
+		</tr>
+		<tr>
+			<td>INT</td>
+			<td>4</td>
+			<td>0 ~ 4294967295</td>
+			<td>-2147483648 ~ 2147483648</td>
+		</tr>
+		<tr>
+			<td>BIGINT</td>
+			<td>8</td>
+			<td>0 ~ 18446744073709551615</td>
+			<td>-9223372036854775808 ~ 9223372036854775808</td>
+		</tr>
+	</table>
+	<h3>浮点数类型和定点数类型</h3>
+	<table>
+		<caption>MySQL 浮点数和定点数类型</caption>
+		<tr>
+			<th>数据类型</th>
+			<th>字节数</th>
+			<th>无符号数的取值范围</th>
+			<th>有符号数的取值范围</th>
+		</tr>
+		<tr>
+			<td>FLOAT</td>
+			<td>4</td>
+			<td>0和1.175494351E-38 ~ 3.402823466E+38</td>
+			<td>-3.402823466E+38 ~ -1.175494351E-38</td>
+		</tr>
+		<tr>
+			<td>DOUBLE</td>
+			<td>8</td>
+			<td>0和2.2250738585072014E-308 ~ 1.7976931348623157E+308</td>
+			<td>-1.7976931348623157E+308 ~ 2.2250738585072014E-308</td>
+		</tr>
+		<tr>
+			<td>DECIMAL(M, D)</td>
+			<td>M+2</td>
+			<td>0和2.2250738585072014E-308 ~ 1.7976931348623157E+308</td>
+			<td>-1.7976931348623157E+308 ~ 2.2250738585072014E-308</td>
+		</tr>
+	</table>
+	<h3>日期与时间类型</h3>
+	<table>
+		<caption>MySQL 日期和时间类型</caption>
+		<tr>
+			<th>数据类型</th>
+			<th>字节数</th>
+			<th>取值范围</th>
+			<th>日期格式</th>
+			<th>零值</th>
+		</tr>
+		<tr>
+			<td>YEAR</td>
+			<td>1</td>
+			<td>1901 ~ 2155</td>
+			<td>YYYY</td>
+			<td>0000</td>
+		</tr>
+		<tr>
+			<td>DATE</td>
+			<td>4</td>
+			<td>1000-01-01 ~ 9999-12-3</td>
+			<td>YYYY-MM-DD</td>
+			<td>0000-00-00</td>
+		</tr>
+		<tr>
+			<td>TIME</td>
+			<td>3</td>
+			<td>-838:59:59 ~ 838:59:59</td>
+			<td>HH:MM:SS</td>
+			<td>00:00:00</td>
+		</tr>
+		<tr>
+			<td>DATETIME</td>
+			<td>8</td>
+			<td>1000-01-01 00:00:00 ~ 999-12-31 23:59:59</td>
+			<td>YYYY-MM-DD HH:MM:SS</td>
+			<td>0000-00-00 00:00:00</td>
+		</tr>
+		<tr>
+			<td>TIMESTAMP</td>
+			<td>4</td>
+			<td>1970-01-01 00:00:01 ~ 2038-01-19 03:14:07</td>
+			<td>YYYY-MM-DD HH:MM:SS</td>
+			<td>0000-00-00 00:00:00</td>
+		</tr>
+	</table>
+	<h4>1. YEAR 类型</h4>
+	<p>
+		使用4位字符串或数字表示，范围为'1901'~'2155'或1901~2155。<br />
+		使用2位字符串表示，范围为'00'~'99'，其中'00'~'69'转化为2000~2069的YEAR值，'70'~'99'转化为1970~1999的YEAR值<br />
+		使用2位数字表示，范围为1~99，其中1~69转化为2001~2069的YEAR值，70~99转化为1970~1999的YEAR值<br />
+		注意：字符串格式的'0'表示的YEAR值为2000，而数字格式的0表示的YEAR值是0000。
+	</p>
+	<h4>2. DATE 类型</h4>
+	<p>
+		以'YYYY-MM-DD'或'YYYYMMDD'字符串格式表示。<br />
+		以'YY-MM-DD'或'YYMMDD'字符串格式表示。YY表示年，范围为'00'~'99'，其中'00'~'69'转化为2000~2069的YEAR值，'70'~'99'转化为1970~1999的YEAR值<br />
+		以YY-MM-DD或者YYMMDD数字格式表示。<br />
+		使用 CURRENT_DATE 或者 NOW() 表示当前系统日期。
+	</p>
+	<h4>3. TIME 类型</h4>
+	<p>
+		以'D HH:MM:SS'字符串格式表示。其中D表示日，可以取0~34之间的值，插入数据时，小时的值等于(D×24+HH)。<br />
+		以'HHMMSS'字符串格式或者HHMMSS数字格式表示。<br />
+		使用 CURRENT_TIME 或 NOW() 输入当前系统时间。
+	</p>
+	<h4>4. DATATIME 类型</h4>
+	<p>
+		以'YYYY-MM-DD HH:MM:SS'或者'YYYYMMDDHHMMSS'字符串格式表示日期和时间。<br />
+		以'YY-MM-DD HH:MM:SS'或者'YYMMDDHHMMSS'字符串格式表示日期和时间。<br />
+		以 YYYYMMDDHHMMSS 或者 YYMMDDHHMMSS 数字格式表示。<br />
+		使用 NOW 来输入当前系统的日期和时间。
+	</p>
+	<h4>5. TIMESTAMP 类型</h4>
+	<p>
+		使用 CURRENT_TIMESTAMP 来输入系统当前日期和时间。<br />
+		输入 NULL 时，系统会输入当前日期和时间。<br />
+		无任何输入时，系统会输入当前日期和时间。
+	</p>
+	<h3>字符串和二进制类型</h3>
+	<table>
+		<caption>MySQL 字符串和二进制类型</caption>
+		<tr>
+			<th>数据类型</th>
+			<th>类型说明</th>
+		</tr>
+		<tr>
+			<td>CHAR</td>
+			<td>用于表示固定长度的字符串</td>
+		</tr>
+		<tr>
+			<td>VARCHAR</td>
+			<td>用于表示可变长度的字符串</td>
+		</tr>
+		<tr>
+			<td>BINARY</td>
+			<td>用于表示固定长度的二进制数据</td>
+		</tr>
+		<tr>
+			<td>VARBINARY</td>
+			<td><用于表示可变长度的二进制数据/td>
+		</tr>
+		<tr>
+			<td>BOLB</td>
+			<td>用于表示二进制大数据</td>
+		</tr>
+		<tr>
+			<td>TEXT</td>
+			<td>用于表示大文本数据</td>
+		</tr>
+		<tr>
+			<td>ENUM</td>
+			<td>表示枚举类型，只能存储一个枚举字符串值</td>
+		</tr>
+		<tr>
+			<td>SET</td>
+			<td>表示字符串对象，可以有零或多个值</td>
+		</tr>
+		<tr>
+			<td>BIT</td>
+			<td>表示位字段类型</td>
+		</tr>
+	</table>
+	<h2>2.3 数据表的基本操作</h2>
+	<p>在操作数据表之前，应该用 “USE 数据库名” 指定操作是在哪个数据库中进行</p>
+	<p>创建数据库表</p>
+	<code>
+		create table <span class="tip">表名</span><br />
+		(<br />
+		&emsp;&emsp;<span class="tip">字段名 1</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>],<br />
+		&emsp;&emsp;<span class="tip">字段名 2</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>],<br />
+		&emsp;&emsp;...<br />
+		&emsp;&emsp;<span class="tip">字段名 3</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>]<br />
+		);
+	</code>
+	<p>查看数据库存在的表</p>
+	<code>
+		show tables;
+	</code>
+	<p>查看某个数据表（可以在show create table 语句的表明之后加上参数 “\G”，使显示结果整齐美观）</p>
+	<code>
+		show create table <span class="tip">表名</span>;
+	</code>
+	<p>使用 DESCRIBE 语句可以查看数据表的字段信息，其中包括字段名、字段类型等信息</p>
+	<code>
+		describe <span class="tip">表名</span> // 可以缩写为: desc <span class="tip">表名</span>;
+	</code>
+	<p>修改表名</p>
+	<code>
+		alter table <span class="tip">旧表名</span> rename [to] <span class="tip">新表名</span>;
+	</code>
+	<p>修改字段名</p>
+	<code>
+		alter table <span class="tip">表名</span> change <span class="tip">旧字段名</span> <span class="tip">新字段名</span> <span class="tip">新数据类型</span>;
+	</code>
+	<p>修改字段的数据类型</p>
+	<code>
+		alter table <span class="tip">表名</span> modify <span class="tip">字段名</span> <span class="tip">数据类型</span>;
+	</code>
+	<p>添加字段</p>
+	<code>
+		alter table <span class="tip">表名</span> add <span class="tip">新字段名</span> <span class="tip">数据类型</span> [<span class="tip">约束条件</span>] [<span class="tip">first|after 已存在字段名</span>];
+	</code>
+	<p>这里 first 为可选参数，用于将新添加的字段设置为表的第一个字段，after 也是可选，用于将新添加的字段添加到指定的已存在字段名的后面</p>
+	<p>删除字段</p>
+	<code>
+		alter table <span class="tip">表名</span> drop <span class="tip">字段名</span>;
+	</code>
+	<p>修改字段的排列位置</p>
+	<code>
+		alter table <span class="tip">表名</span> modify <span class="tip">字段名 1</span> <span class="tip">数据类型</span> <span class="tip">first|after 字段名 2</span>;
+	</code>
+	<p>删除数据表</p>
+	<code>
+		drop table <span class="tip">表名</span>;
+	</code>
+	<h2>2.4 表的约束</h2>
+	<p>设置单字段为主键，唯一标识表中的记录</p>
+	<code>
+		<span class="tip">字段名</span> <span class="tip">数据类型</span> primary key
+	</code>
+	<p>设置多字段为主键</p>
+	<code>
+		primary key (<span class="tip">字段名 1</span>, <span class="tip">字段名 2</span>, ..., <span class="tip">字段名 n</span>)
+	</code>
+	<p>非空约束，设置字段的值不能为 NULL</p>
+	<code>
+		<span class="tip">字段名</span> <span class="tip">数据类型</span> not null
+	</code>
+	<p>唯一约束，用来保证数据表中字段的唯一性</p>
+	<code>
+		<span class="tip">字段名</span> <span class="tip">数据类型</span> unique
+	</code>
+	<p>默认约束，用来给数据表中的字段指定默认值</p>
+	<code>
+		<span class="tip">字段名</span> <span class="tip">数据类型</span> default <span class="tip">默认值</span>
+	</code>
+	<h2>2.5 设置表的字段值自动增加</h2>
+	<p>默认情况下，字段的值是从1开始自增的</p>
+	<code>
+		<span class="tip">字段名</span> <span class="tip">数据类型</span> auto_increment
+	</code>
+	<h2>2.6 索引</h2>
+	<p>
+		数据库的索引好比新华字典的音序表，它是对数据库表中一列或多列的值进行排序后的一种结构，其作用就是提高表中数据的查询速度。<br />MySQL 中的索引分为很多种，具体如下：
+	</p>
+	<p>
+		1. 普通索引<br />
+		普通索引是由 KEY 或 INDEX 定义的索引，它是 MySQL 中的基本索引类型，可以创建在任何数据类型中，其值是否唯一和非空由字段本身的约束条件决定。<br />
+		2. 唯一性索引<br />
+		唯一性索引是由 UNIQUE 定义的索引，该索引所在字段的值必须是唯一的。<br />
+		3. 全文索引<br />
+		全文索引是由 FULLTEXT 定义的索引，它只能创建在 CHAR、VARCHAR 或 TEXT 类型的字段上，而且，现在只有 MyISAM 存储引擎支持全文索引。<br />
+		4. 单列索引<br />
+		指在表中单个字段上创建索引，它可以是普通索引、唯一索引或者全文索引，只要保证该索引只对应表中一个字段即可。<br />
+		5. 多列索引<br />
+		指在表中多个字段上创建索引，只有在查询条件中使用了这些字段中的第一个字段时，该索引才会被使用。<br />
+		6. 空间索引<br />
+		由 SPATIAL 定义的索引，它只能创建在空间数据类型的字段上。MySQL 中的空间数据类型有4种，分别是 GEOMETRY、POINT、LINESTRING 和 POLYGON。需要注意的是，创建空间索引的字段，必须将其声明为 NOT NULL，并且空间索引只能在存储引擎为 MyISAM 的表中创建。
+	</p>
+	<p>
+		需要注意的是，虽然索引可以提高数据表的访问速度，但索引会占用一定的磁盘空间，并且在创建和维护索引时，其消耗的时间是随着数据量的增加而增加的。因此，使用索引时，应该综合考虑索引的优点和缺点。
+	</p>
+	<h3>创建索引</h3>
+	<p>1. 创建表的时候创建索引</p>
+	<code>
+		create table <span class="tip">表名</span><br />
+		(<br />
+		&emsp;&emsp;<span class="tip">字段名 1</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>],<br />
+		&emsp;&emsp;<span class="tip">字段名 2</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>],<br />
+		&emsp;&emsp;...<br />
+		&emsp;&emsp;<span class="tip">字段名 3</span>, <span class="tip">数据类型</span>, [<span class="tip">完整性约束条件</span>],<br />
+		&emsp;&emsp;[<span class="tip">unique|fulltext|spatial</span>] <span class="tip">index|key</span> [<span class="tip">别名</span>] (<span class="tip">字段名 1</span> [<span class="tip">(长度)</span>] [<span class="tip">asc|desc</span>])<br />
+		);
+	</code>
+	<p>
+		(1) unique:可选参数，表示唯一索引。<br />
+		(2) fulltext:可选参数，表示全文索引。<br />
+		(3) spatial:可选参数，表示空间索引。<br />
+		(4) index和key:用来表示字段的索引，二者选一即可。<br />
+		(5) 别名:可选参数，表示创建的索引的名称。<br />
+		(6) 字段名 1:指定索引对应字段的名称。<br />
+		(7) 长度:可选参数，用于表示索引的长度。<br />
+		(8) asc和desc:可选参数，其中，asc表示升序排序，desc表示降序排序。
+	</p>
+	<p>2. 使用 CREATE INDEX 语句在已存在的表上创建索引</p>
+	<code>
+		create [<span class="tip">unique|fulltext|spatial</span>] index <span class="tip">索引名</span>
+		on <span class="tip">表名</span> (<span class="tip">字段名 1</span> [<span class="tip">(长度)</span>] [<span class="tip">asc|desc</span>]);
+	</code>
+	<p>3. 使用 alter table 语句在已经存在的表上创建索引</p>
+	<code>
+		alter table <span class="tip">表名</span> add [<span class="tip">unique|fulltext|spatial</span>] index <span class="tip">索引名</span> (<span class="tip">字段名 1</span> [<span class="tip">(长度)</span>] [<span class="tip">asc|desc</span>]);
+	</code>
+	<h3>删除索引</h3>
+	<p>1. 使用 alter table 删除索引</p>
+	<code>
+		alter table <span class="tip">表名</span> drop index <span class="tip">索引名</span>;
+	</code>
+	<p>2. 使用 drop index 删除索引</p>
+	<code>
+		drop index <span class="tip">索引名</span> on <span class="tip">表名</span>;
+	</code>
+</body>
+</html>

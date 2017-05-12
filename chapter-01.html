@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-01</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第1章 数据库入门</h1>
+	<h2>1.1 MySQL的使用</h2>
+	<p>通过 DOS 命令来启动 MySQL 服务</p>
+	<code>
+		net start <span class="tip">MySQL服务名称</span>
+	</code>
+	<p>通过 DOS 命令来停止 MySQL 服务</p>
+	<code>
+		net stop <span class="tip">MySQL服务名称</span>
+	</code>
+	<p>以上两条命令要用管理员启动 CMD</p>
+	<p>通过 DOS 命令登陆 MySQL 数据库</p>
+	<code>
+		mysql -h <span class="tip">hostname</span> -u <span class="tip">username</span> -p<br />
+		Enter password: <span class="tip">输入密码</span>
+	</code>
+	<p>如果是本地登陆，可以省略主机名</p>
+	<code>
+		mysql -u <span class="tip">username</span> -p<br />
+	</code>
+	<table>
+		<caption>MySQL 相关命令</caption>
+		<tr>
+			<th>命令</th>
+			<th>简写</th>
+			<th>具体含义</th>
+		</tr>
+		<tr>
+			<td>?</td>
+			<td>(\?)</td>
+			<td>显示帮助信息</td>
+		</tr>
+		<tr>
+			<td>clear</td>
+			<td>(\c)</td>
+			<td>明确当前输入语句</td>
+		</tr>
+		<tr>
+			<td>connect</td>
+			<td>(\r)</td>
+			<td>连接到服务器，可选参数为数据库和主机</td>
+		</tr>
+		<tr>
+			<td>delimiter</td>
+			<td>(\d)</td>
+			<td>设置语句分隔符</td>
+		</tr>
+		<tr>
+			<td>ego</td>
+			<td>(\G)</td>
+			<td>发送命令到 MySQL 服务器，并显示结果</td>
+		</tr>
+		<tr>
+			<td>exit</td>
+			<td>(\q)</td>
+			<td>退出 MySQL</td>
+		</tr>
+		<tr>
+			<td>go</td>
+			<td>(\g)</td>
+			<td>发送命令到 MySQL 服务器</td>
+		</tr>
+		<tr>
+			<td>help</td>
+			<td>(\h)</td>
+			<td>显示帮助信息</td>
+		</tr>
+		<tr>
+			<td>notee</td>
+			<td>(\t)</td>
+			<td>不写输出文件</td>
+		</tr>
+		<tr>
+			<td>print</td>
+			<td>(\p)</td>
+			<td>打印当前命令</td>
+		</tr>
+		<tr>
+			<td>prompt</td>
+			<td>(\R)</td>
+			<td>改变 MySQL 提示信息</td>
+		</tr>
+		<tr>
+			<td>quit</td>
+			<td>(\q)</td>
+			<td>退出 MySQL</td>
+		</tr>
+		<tr>
+			<td>rehash</td>
+			<td>(\#)</td>
+			<td>重建完成散列</td>
+		</tr>
+		<tr>
+			<td>source</td>
+			<td>(\.)</td>
+			<td>执行一个 SQL 脚本文件，以一个文件名作为参数</td>
+		</tr>
+		<tr>
+			<td>status</td>
+			<td>(\s)</td>
+			<td>从服务器获取 MySQL 的状态信息</td>
+		</tr>
+		<tr>
+			<td>tee</td>
+			<td>(\T)</td>
+			<td>设置输出文件，并将信息添加到所有给定的输出文件</td>
+		</tr>
+		<tr>
+			<td>use</td>
+			<td>(\u)</td>
+			<td>用另一个数据库，数据库名称作为参数</td>
+		</tr>
+		<tr>
+			<td>charset</td>
+			<td>(\C)</td>
+			<td>切换到另一个字符集</td>
+		</tr>
+		<tr>
+			<td>warnings</td>
+			<td>(\W)</td>
+			<td>每一个语句之后显示警告</td>
+		</tr>
+		<tr>
+			<td>nowarning</td>
+			<td>(\w)</td>
+			<td>每一个语句之后不现实警告</td>
+		</tr>
+	</table>
+	<p>
+		通过 DOS 命令修改 MySQL 客户端的字符集编码
+	</p>
+	<code>
+		set character_set_client = gbk
+	</code>
+</body>
+</html>
