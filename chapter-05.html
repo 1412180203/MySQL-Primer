@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-05</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第5章 多表操作</h1>
+	<h2>5.1 外键</h2>
+	<p>
+		外键是指引用另一个表中的一列或多列，被引用的列应该具有主键约束或唯一性约束。外键用于建立和加强两个表数据之间的连接。<br />
+		被引用的表是主表，引用外键的表，是从表，两个表是主从关系。外键列只能插入参照列存在的值，参照列被参照的值不能被删除，这就保证了数据的参照完整性。
+	</p>
+	<h4>1. 为表添加外键约束</h4>
+	<code>
+		alter table <span class="tip">表名</span> add constraint <span class="tip">外键名</span> foreign key(<span class="tip">外键字段名</span>) references <span class="tip">外表表名</span>(<span class="tip">主键字段名</span>);
+	</code>
+	<p>
+		在为表添加外键约束时，有些需要注意的地方：<br />
+		(1) 建立外键的表必须是 InnoDB 型，不能是临时表。因为在 MySQL 中只有 InnoDB 类型的表才支持外键。<br />
+		(2) 定义外键名时，不能加引号，如 constraint 'fk_id' 或 constraint "fk_id" 都是错的。
+	</p>
+	<h4>2. 添加外键约束的参数说明</h4>
+	<p>
+		建立外键的目的是为了保证数据的完整和统一性，如果主表中的数据被删除或修改，那从表对应的数据也应该被删除，否则数据库中会存在很多无意义的垃圾数据。MySQL 可以在建立外键时添加 on delete 或 on update 子句来告诉数据库，怎样避免垃圾数据的产生。
+	</p>
+	<code>
+		alter table <span class="tip">表名</span> add constraint <span class="tip">外键名</span> foreign key(<span class="tip">外键字段名</span>) references <span class="tip">外表表名</span>(<span class="tip">主键字段名</span>)<br />
+		[on delete <span class="tip">{cascade|set null|no action|restrict}</span>]<br />
+		[on update <span class="tip">{cascade|set null|no action|restrict}</span>]
+	</code>
+	<table>
+		<caption>添加外键约束的参数说明</caption>
+		<tr>
+			<th>参数名称</th>
+			<th>功能描述</th>
+		</tr>
+		<tr>
+			<td>cascade</td>
+			<td>删除包含与已删除键值有参照关系的所有记录</td>
+		</tr>
+		<tr>
+			<td>set null</td>
+			<td>修改包含与已删除键值有参照关系的所有记录，使用 null 值替换（不能用于已标记为 not null 的字段）</td>
+		</tr>
+		<tr>
+			<td>no action</td>
+			<td>不进行任何操作</td>
+		</tr>
+		<tr>
+			<td>restrict</td>
+			<td>拒绝主表删除或修改外键关联列。（在不定义 on delete 和 on update 子句时，这是默认设置，也时最安全的设置）</td>
+		</tr>
+	</table>
+	<h4>3.删除外键约束</h4>
+	<p>在实际开发中，根据业务逻辑的需求，需要解除两个表之间的关联关系时，就需要删除外键约束。</p>
+	<code>
+		alter table <span class="tip">表名</span> drop foreign key <span class="tip">外键名</span>;
+	</code>
+	<h2>5.2 操作关联表</h2>
+	<h4>1. 关联关系</h4>
+	<p>
+		在实际开发中，需要根据实体内容设计数据表，实体间会有各种关联关系：<br />
+		(1) 多对一：在多对一的表关系中，应该将外键建在多的一方，否则会造成数据的冗余。<br />
+		(2) 多对多：为了实现这种关系，需要定义一张中间表（称为连接表），该表会存在两个外键。需要注意的是，连接表的两个外键都是可以重复的，但是两个外键之间的关系是不能重复的，所以这两个外键又是连接表的联合主键。<br />
+		(3) 一对一：首先，要分清主从关系。从表需要主表的存在才有意义，因此，要在从表中建立外键。这种关系在数据库中并不常见，因为以这种方式存储的信息通常会放在一个表中。
+	</p>
+	<h4>2. 添加数据</h4>
+	<p>
+		因为外键列只能插入参照列存在的值，所以要先为主表添加数据。
+	</p>
+	<h4>3. 删除数据</h4>
+	<p>
+		由于主表和从表之间具有关联关系，参照列被参照的值是不能被删除的，只能先删除从表中的数据，再删除主表中的数据，否则会报错。
+	</p>
+	<h2>5.3 连接查询</h2>
+	<h4>1.交叉连接</h4>
+	<p>
+		交叉连接返回的结果是被连接的两个表中所有数据行的笛卡儿积，也就是返回第一个表中符合查询条件的数据行数乘以第二个表中符合查询条件的数据行数。
+	</p>
+	<code>
+		select * from <span class="tip">表1</span> cross join <span class="tip">表2</span>;
+	</code>
+	<p>
+		这里 cross join 用于连接两个要查询的表，通过该语句可以查询两个表中所有的数据组合。<br />
+		在实际开发中这种业务需求很少见，一般不会使用交叉连接，而是使用具体的条件对数据进行有目的的查询。
+	</p>
+	<h4>2. 内连接</h4>
+	<p>
+		内连接又称简单连接或自然连接，是一种常见的连接查询。内连接使用比较运算符对两个表中的数据进行比较，并列出连接条件匹配的数据行，组合成新的记录，也就是说在内连接查询中，只有满足条件的记录才能出现在查询结果中。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表1</span> [inner] join <span class="tip">表2</span> on <span class="tip">表1.关系字段</span> = <span class="tip">表2.关系字段</span>;
+	</code>
+	<p>使用 where 子句实现内连接查询</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表1</span>, <span class="tip">表2</span> where <span class="tip">表1.关系字段</span> = <span class="tip">表2.关系字段</span>;
+	</code>
+	<p>
+		这两个语句的查询结果虽然相同，但是 inner join 是内连接语句，where 是条件判断语句，在 where 语句后可以直接添加其他条件，而 inner join 语句不可以。<br />
+		如果在一个连接查询中，涉及的两个表是同一个表，这种查询称为自连接查询。自连接是一种特殊的内连接，它是指相互连接的表在物理上为同一个表，但逻辑上分为两个表。
+	</p>
+	<h4>3. 外连接</h4>
+	<p>
+		前面讲解的内连接查询中，返回的结果只包含符合查询条件和连接条件的数据，然而有时还需要包含没有关联的数据，即返回查询结果中不仅包含的符合条件的数据，而且还包括左表(左连接或左外连接)、右表(右连接或右外连接)或者两个表(全外连接)中的所有数据，此时就需要使用外连接查询，外连接分为左连接和右连接。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表1</span> <span class="tip">left|right</span> [outer] join <span class="tip">表2</span> on <span class="tip">表1.关系字段</span> = <span class="tip">表2.关系字段</span> where <span class="tip">条件</span>
+	</code>
+	<p>
+		(1) left join(左连接)：返回包含左表中的所有记录和右表中符合连接条件的记录。如果左表的某条记录在右表中不存在，则在右表中显示为空。<br />
+		(2) right join(右连接)：返回包含右表中的所有记录和左表中符合连接条件的记录。如果右表的某条记录在左表中不存在，则在左表中显示为空。
+	</p>
+	<h4>4. 复合条件连接查询</h4>
+	<p>
+		复合条件连接连接查询就是在连接查询的过程中，通过添加过滤条件来限制查询结果，使查询结果更加精确。
+	</p>
+	<h2>5.4 子查询</h2>
+	<p>
+		子查询是指一个查询语句嵌套在另一个查询语句内部的查询。它可以嵌套在一个 select、select...into 语句、insert...into 等语句中。在执行查询语句时，首先会执行子查询中的语句，然后将返回结果作为外层查询的过滤条件，在子查询中通常可以使用 in、exists、any、all 操作符。
+	</p>
+	<h4>1. 带 in 关键字的子查询</h4>
+	<p>
+		使用 in 关键字进行子查询时，内层查询语句仅返回一个数据列，这个数据列中的值将提供外层查询语句进行比较操作。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表名</span> where <span class="tip">字段名</span> [not] in (<span class="tip">子查询</span>);
+	</code>
+	<h4>2. 带 exists 关键字的子查询</h4>
+	<p>
+		exists 关键字后面的参数可以时任意一个子查询，这个子查询的作用相当于测试，它不产生任何数据，只返回 true 或 false，当返回值为 true 时，外层查询才会执行。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表名</span> where <span class="tip">字段名</span> [not] exists (<span class="tip">子查询</span>);
+	</code>
+	<p>
+		exists 关键字比 in 关键字的运行效率高，所以在实际开发中，特别时大数据量时，推荐使用 exists 关键字。
+	</p>
+	<h4>3. 带 any 关键字的子查询</h4>
+	<p>
+		any 关键字表示满足其中任意一个条件，它允许创建一个表达式对子查询的返回值列表进行比较，只要满足内层子查询的任意一个比较条件，就返回一个结果作为外层查询条件。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表名</span> where <span class="tip">字段名</span> <span class="tip">关系运算符</span> any (<span class="tip">子查询</span>);
+	</code>
+	<h4>4. 带 all 关键字的子查询</h4>
+	<p>
+		all 关键字与 any 有点类似，只不过带 all 关键字的子查询返回的结果需要同时满足所有内层查询条件。
+	</p>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表名</span> where <span class="tip">字段名</span> <span class="tip">关系运算符</span> all (<span class="tip">子查询</span>);
+	</code>
+	<h4>5. 带比较运算符的子查询</h4>
+	<code>
+		select <span class="tip">查询字段</span> from <span class="tip">表名</span> where <span class="tip">字段名</span> <span class="tip">关系运算符</span> (<span class="tip">子查询</span>);
+	</code>
+</body>
+</html>
+
+<!-- 
+<span class="tip"></span>
+ -->
