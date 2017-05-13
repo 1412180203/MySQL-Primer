@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-03</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第3章 添加、更新与删除数据</h1>
+	<h2>3.1 添加数据</h2>
+	<h4>1. insert 语句中指定所有字段名</h4>
+	<code>
+		insert into <span class="tip">表名</span>(<span class="tip">字段名 1</span>, <span class="tip">字段名 2</span>, ...) <br />
+		&emsp;&emsp;values(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...);
+	</code>
+	<p>
+		这里 “字段名 1，字段名 2，...” 表示数据表中的字段名称，此处必须列出表中所有字段的名称。“值 1，值 2，...” 表示每个字段的值，每个值的顺序、类型必须与对应的字段想匹配。<br />
+		这里表名后的字段顺序可以与其在表中定义的顺序不一致，它们只需要与 values 中值的顺序一致即可。
+	</p>
+	<h4>2. insert 语句不指定字段名</h4>
+	<code>
+		insert into <span class="tip">表名</span> <br />
+		&emsp;&emsp;values(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...);
+	</code>
+	<p>
+		由于 insert 语句没有指定字段名，必须添加表中所有字段的值，且添加的值的顺序必须和字段在表中的顺序相同。
+	</p>
+	<h4>3. 为表的指定字段添加数据，就是在 insert 语句中只向部分字段添加值，而其他字段的值为表定义时的默认值</h4>
+	<code>
+		insert into <span class="tip">表名</span>(<span class="tip">字段名 1</span>, <span class="tip">字段名 2</span>, ...) <br />
+		&emsp;&emsp;values(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...);
+	</code>
+	<h4>4.insert 语句的其他写法</h4>
+	<code>
+		insert into <span class="tip">表名</span><br />
+		&emsp;set <span class="tip">字段 1</span> = <span class="tip">值 1</span>[, <span class="tip">字段 2</span> = <span class="tip">值 2</span>, ...];
+	</code>
+	<h4>5. 同时添加多条记录</h4>
+	<code>
+		insert into <span class="tip">表名</span>[(<span class="tip">字段名 1</span>, <span class="tip">字段名 2</span>, ...)]<br />
+		&emsp;&emsp;values(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...), (<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...)<br />
+		&emsp;&emsp;...<br />
+		&emsp;&emsp;(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...);
+	</code>
+	<h2>3.2 更新数据</h2>
+	<code>
+		update <span class="tip">表名</span> <br />
+		&emsp;&emsp;set <span class="tip">字段名 1</span> = <span class="tip">值 1</span>[, <span class="tip">字段名 2</span> = <span class="tip">值 2</span>, ...]<br />
+		 &emsp;&emsp;[where <span class="tip">条件表达式</span>];
+	</code>
+	<p>在 update 语句中，如果没有使用 where 子句，则会将表中所有记录的指定字段都进行更新。</p>
+	<h2>3.3 删除数据</h2>
+	<code>
+		delete from <span class="tip">表名</span> [where <span class="tip">条件表达式</span>];
+	</code>
+	<p>
+		在 delete 语句中，如果没有使用 where 子句，则会将表中所有记录都删除。
+	</p>
+	<p>使用关键字 truncate 删除表中数据</p>
+	<code>
+		truncate [table] <span class="tip">表名</span>;
+	</code>
+	<p>truncate 语句和 delete 语句都能实现删除表中的所有数据的功能，但两者也有一定的区别：</p>
+	<p>
+		(1) delete 语句是 DML 语句，truncate 语句通常被认为是 DDL 语句。<br />
+		(2) delete 语句后面可以跟 where 子句，通过指定 where 子句中的条件表达式只删除满足条件的部分记录，而 truncate 语句只能用于删除表中的所有记录。<br />
+		(3) 使用 truncate 语句删除表中的数据后，再次向表中添加记录时，自动增加字段的默认初始值重新由1开始，而使用 delete 语句删除表中所有记录后，再次向表中添加记录时，自动增加字段的值为删除时该字段的最大值加1。
+	</p>
+</body>
+</html>

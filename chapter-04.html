@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-04</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第4章 单表查询</h1>
+	<h2>4.1 简单查询</h2>
+	<h4>1. select 语句</h4>
+	<code>
+		select [distinct] *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;[where <span class="tip">条件表达式</span>]<br />
+		&emsp;&emsp;[group by <span class="tip">字段名</span> [having <span class="tip">条件表达式 2</span>]]<br />
+		&emsp;&emsp;[order by <span class="tip">字段名</span> [asc|desc]]<br />
+		&emsp;&emsp;[limit [<span class="tip">offset</span>] <span class="tip">记录数</span>];
+	</code>
+	<p>
+		(1) select [distinct] *|{字段名 1, 字段名 2,...}：“字段名 1，字段名 2，...” 表示从表中查询的指定字段，星号(*)通配符表示表中所有字段，二者为互斥关系，任选其一。“distinct” 是可选参数，用于剔除查询结果中重复的数据。<br />
+		(2) from 表名：表示从指定的表中查询数据。<br />
+		(3) where 条件表达式 1：“where” 是可选参数，用于指定查询条件。<br />
+		(4) group by 字段名 [having 条件表达式 2]：“group by” 是可选参数，用于将查询结果按照指定字段分组，“having” 也是可选参数，用于对分组后的结果进行过滤。<br />
+		(5) order by 字段名 [asc|desc]：“order by” 是可选参数，用于将查询结果按照指定字段进行排序。排序方式由参数asc或desc控制，其中asc表示按升序进行排序，desc表示按降序进行排序。如果不指定参数，默认为升序排序。<br />
+		(6) limit [offset] 记录数：“limit” 是可选参数，用于限制查询结果的数量。limit 后面可以跟两个参数，第一个参数 “offset” 表示偏移量，如果偏移量为0则从查询结果的第一条记录开始。offset 为可选值，如果不指定其默认值为0。第二个参数“记录数”表示返回查询记录的条数。
+	</p>
+	<h4>2. 在 select 语句中列出所有字段名来查询表中所有数据</h4>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span> from <span class="tip">表名</span>;
+	</code>
+	<h4>3. 使用星号(*)通配符来代替所有的字段名</h4>
+	<code>
+		select * from <span class="tip">表名</span>;
+	</code>
+	<p>
+		使用星号(*)通配符同样可以查出表中所有字段的数据，但查询结果只能按照字段在表中定义的顺序显示。<br />
+		一般情况下，除非需要使用表中所有字段的数据，否则最好不要使用星号通配符，使用通配符虽然可以节省输入查询语句的时间，但由于获取的数据过多会降低查询的效率。
+	</p>
+	<h4>4. 查询指定字段</h4>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span> from <span class="tip">表名</span>;
+	</code>
+	<h2>4.2 按条件查询</h2>
+	<h4>1. 带关系运算符的查询</h4>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">条件表达式</span>;
+	</code>
+	<p>
+		这里 “条件表达式” 是指 select 语句的查询条件。在 MySQL 中，提供了一系列的关系运算符，在 where 子句中可以使用关系运算符连接操作数作为查询条件对数据进行过滤。
+	</p>
+	<table>
+		<caption>关系运算符</caption>
+		<tr>
+			<th>关系运算符</th>
+			<th>说明</th>
+			<th>关系运算符</th>
+			<th>说明</th>
+		</tr>
+		<tr>
+			<td>=</td>
+			<td>等于</td>
+			<td><=</td>
+			<td>小于等于</td>
+		</tr>
+		<tr>
+			<td><></td>
+			<td>不等于</td>
+			<td>></td>
+			<td>大于</td>
+		</tr>
+		<tr>
+			<td>!=</td>
+			<td>不等于</td>
+			<td>>=</td>
+			<td>大于等于</td>
+		</tr>
+		<tr>
+			<td><</td>
+			<td>小于</td>
+			<td></td>
+			<td></td>
+		</tr>
+	</table>
+	<h4>2. 带 in 关键字的查询</h4>
+	<p>in 关键字用于判断某个字段的值是否在指定集合中，如果字段在集合中，则满足条件，该字段所在的记录将被查询出来。</p>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">字段名</span> [not] in (<span class="tip">元素1, 元素2,...</span>);
+	</code>
+	<h4>3. 带 between and 关键字的查询</h4>
+	<p>between and 用于判断某个字段的值是否在指定范围之内，如果是，则满足条件，该字段所在的记录将被查询出来，反之则不会。</p>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">字段名</span> [not] between <span class="tip">值1</span> and <span class="tip">值2</span>;
+	</code>
+	<h4>4. 空值查询</h4>
+	<p>
+		在数据表中，某些列的值可能为空值(null)，空值不同于0，也不同于空字符串。在 MySQL 中，使用 is null 关键字来判断字段的值是否为空。
+	</p>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">字段名</span> is [not] null;
+	</code>
+	<h4>5. 带 distinct 关键字的查询</h4>
+	<p>很多表中某些字段的数据存在重复的值，可以使用 distinct 关键字来过滤掉查询结果中重复的值。</p>
+	<code>
+		select distinct <span class="tip">字段名</span> from <span class="tip">表名</span>;
+	</code>
+	<h4>6. distinct 关键字作用于多个字段</h4>
+	<code>
+		select distinct <span class="tip">字段名 1,字段名 2,...</span> from <span class="tip">表名</span>;
+	</code>
+	<p>
+		只有 distinct 关键字后指定的多个字段值都相同，才会被认作是重复记录。
+	</p>
+	<h4>7. 带 like 关键字的查询</h4>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">字段名</span> [not] like '<span class="tip">匹配字符串</span>';
+	</code>
+	<p>
+		在上面的语法格式中，not 是可选参数，使用 not 表示查询与指定字符串不匹配的记录。“匹配字符串”指定用来匹配的字符串，其值可以是一个普通字符串，也可以是包含百分号(%)和下划线(_)的通配符字符串。<br />
+		百分号(%)通配符，匹配任意长度的字符串，包括空字符串。百分号通配符可以出现在通配字符串的任意位置。在通配字符串中可以出现多个百分号通配符。<br />
+		下划线(_)通配符，只匹配单个字符，如果要匹配多个字符，需要使用多个下划线通配符。如果使用多个下划线匹配多个连续的字符，下划线之间不能有空格。
+	</p>
+	<p>
+		百分号和下划线是通配符，它们在通配字符串中有特殊含义，因此，如果要匹配字符串中的百分号和下划线，就需要在通配符字符串中使用右斜线("\")对百分号和下划线进行转义，例如，“\%”匹配百分号字面值，“\_”匹配下划线字面值。
+	</p>
+	<h4>8. 带 and 关键字的多条件查询</h4>
+	<p>
+		在使用 select 语句查询数据时，有时为了使查询结果更加精确，可以使用多个查询条件。在 MySQL 中，提供了一个 and 关键字，使用 and 关键字可以连接两个或者多个查询条件，只有满足条件的记录才会被返回。
+	</p>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">条件表达式 1</span> and <span class="tip">条件表达式 2</span> [... and <span class="tip">条件表达式 n</span>];
+	</code>
+	<h4>9. 带 or 关键字的多条件查询</h4>
+	<p>
+		在使用 select 语句查询数据时，也可以使用 or 关键字连接多个查询条件。与 and 关键字不同，在使用 or 关键字时，只要记录满足任意一个条件就会被查询出来。
+	</p>
+	<code>
+		select *|<span class="tip">{字段名 1, 字段名 2,...}</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;where <span class="tip">条件表达式 1</span> or <span class="tip">条件表达式 2</span> [... or <span class="tip">条件表达式 n</span>];
+	</code>
+	<h4>10. or 和 and 关键字一起使用的情况</h4>
+	<p>
+		or 关键字和 and 关键字可以一起使用，需要注意的是，and 的优先级高于 or,因此当两者一起使用时，应该先运算 and 两边的条件表达式，再运算 or 两边的条件表达式。
+	</p>
+	<h2>4.3 高级查询</h2>
+	<h3 class="dot">聚合函数</h3>
+	<table>
+		<caption>聚会函数</caption>
+		<tr>
+			<th>函数名称</th>
+			<th>作用</th>
+			<th>函数名称</th>
+			<th>作用</th>
+		</tr>
+		<tr>
+			<td>count()</td>
+			<td>返回某列的行数</td>
+			<td>max()</td>
+			<td>返回某列的最大值</td>
+		</tr>
+		<tr>
+			<td>sum()</td>
+			<td>返回某列值的和</td>
+			<td>min()</td>
+			<td>返回某列的最小值</td>
+		</tr>
+		<tr>
+			<td>avg()</td>
+			<td>返回某列的平均值</td>
+			<td></td>
+			<td></td>
+		</tr>
+	</table>
+	<h4>1. count() 函数</h4>
+	<p>count() 函数用来统计记录的条数</p>
+	<code>
+		select count(*) from <span class="tip">表名</span>;
+	</code>
+	<h4>2. sum() 函数</h4>
+	<p>sum() 是求和函数，用于求出表中某个字段所有值的总和</p>
+	<code>
+		select sum(<span class="tip">字段名</span>) from <span class="tip">表名</span>;
+	</code>
+	<h4>3. avg() 函数</h4>
+	<p>avg() 函数用于求出某个字段所有值的平均值</p>
+	<code>
+		select avg(<span class="tip">字段名</span>) from <span class="tip">表名</span>;
+	</code>
+	<h4>4. max() 函数</h4>
+	<p>max() 函数是求最大值的函数，用于求出某个字段的最大值</p>
+	<code>
+		select max(<span class="tip">字段名</span>) from <span class="tip">表名</span>;
+	</code>
+	<h4>5. min() 函数</h4>
+	<p>min() 函数是求最小值的函数，用于求出某个字段的最小值</p>
+	<code>
+		select min(<span class="tip">字段名</span>) from <span class="tip">表名</span>;
+	</code>
+	<h3 class="dot">对查询结果排序</h3>
+	<p>
+		从表中查询出来的数据可能是无序的，或者其排序不是用户期望的。为了使查询结果满足用户的要求，可以使用 order by 对查询结果进行排序。
+	</p>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;order by <span class="tip">字段名 1</span> [asc|desc], <span class="tip">字段名 2</span> [asc|desc],<span class="tip">...</span>;
+	</code>
+	<P>
+		上面的语法格式中，指定的字段名1、字段名2等是对查询结果排序的依据。参数 asc 表示按照升序进行排序，desc 表示按照降序进行排序。默认情况下，按照 asc 方式进行排序。
+	</P>
+	<p>
+		在按照指定字段进行升序排序时，如果某条记录的字段值为 nunll，则这条记录会在第一条显示，这是因为 null 值可以被认为时最小值。
+	</p>
+	<h3 class="dot">分组查询</h3>
+	<p>
+		在对表中数据进行统计时，也可能需要按照一定的类别进行统计，在 MySQL 中，可以使用 group by 按某个字段或者多个字段中的值进行分组，字段中值相同的为一组。
+	</p>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;group by <span class="tip">字段名 1, 字段名 2, ...</span> [having <span class="tip">条件表达式</span>];
+	</code>
+	<p>
+		这里，指定的字段名1、字段名2等是对查询结果分组的依据。having 关键字指定条件表达式对分组后的内容进行过滤。需要注意的是，group by 一般和聚合函数一起使用，如果查询的字段出现在 group by 后，却没有包含在聚合函数中，该字段显示的是分组后的第一条记录的值，这样有可能会导致查询结果不符合我们的期望。
+	</p>
+	<h4>1. 单独使用 group by 关键字，查询的是每个分组中的第一条记录</h4>
+	<h4>2. group by 和聚合函数一起使用，可以统计出某个或某些字段在一个分组中的最大值、最小值、平均值等</h4>
+	<h4>3. group by 和 having 关键字一起使用。having 关键字和 where</h4>
+	<p>
+		关键字的作用相同，都用于设置条件表达式对查询结果进行过滤，两者的区别在于，having 关键字后面可以跟聚合函数，而 where 关键字不能。通常情况下 having 关键字都和 group by 一起使用，用于对分组后的结果进行过滤。
+	</p>
+	<h3 class="dot">使用 Limit 限制查询结果的数量</h3>
+	<p>
+		查询数据时，可能会返回很多条记录，而用户需要的记录可能只是其中的一条或者几条。为次，MySQL 中提供了一个关键字 limit，可以指定查询结果从哪条记录开始以及一共查询多少条信息。
+	</p>
+	<code>
+		select <span class="tip">字段名 1, 字段名 2,...</span><br />
+		&emsp;&emsp;from <span class="tip">表名</span><br />
+		&emsp;&emsp;limit [<span class="tip">offset</span>] <span class="tip">记录数</span>;
+	</code>
+	<p>
+		这里，limit 后面可以跟两个参数，第一个参数 “offset” 表示偏移量，如果偏移量为0则从查询结果的第一条记录开始。offset 为可选值，如果不指定其默认值为0。第二个参数“记录数”表示返回查询记录的条数。 
+	</p>
+	<h3 class="dot">函数(列表)</h3>
+	<p>MySQL 中提供了丰富的函数，通过这些函数可以简化用户对数据的操作。</p>
+	<table>
+		<caption>数字函数</caption>
+		<tr>
+			<th>函数名称</th>
+			<th>作用</th>
+		</tr>
+		<tr>
+			<td>abs(x)</td>
+			<td>返回 x 的绝对值</td>
+		</tr>
+		<tr>
+			<td>sqrt(x)</td>
+			<td>返回 x 的非负2次方根</td>
+		</tr>
+		<tr>
+			<td>mod(x, y)</td>
+			<td>返回 x 被 y 除后的余数</td>
+		</tr>
+		<tr>
+			<td>ceiling(x)</td>
+			<td>返回不小于 x 的最小整数</td>
+		</tr>
+		<tr>
+			<td>floor(x)</td>
+			<td>返回不大于 x 的最大整数</td>
+		</tr>
+		<tr>
+			<td>round(x, y)</td>
+			<td>对 x 进行四舍五入操作，小数点后保留 y 位</td>
+		</tr>
+		<tr>
+			<td>truncate(x, y)</td>
+			<td>舍去 x 中小数点 y 位后面的数</td>
+		</tr>
+		<tr>
+			<td>sign(x)</td>
+			<td>返回 x 的符号，-1、0或者1</td>
+		</tr>
+	</table>
+	<table>
+		<caption>字符串函数</caption>
+		<tr>
+			<th>函数名称</th>
+			<th>作用</th>
+		</tr>
+		<tr>
+			<td>length(str)</td>
+			<td>返回字符串 str 的长度</td>
+		</tr>
+		<tr>
+			<td>concat(s1, s2, ...)</td>
+			<td>返回一个或者多个字符串连接产生的新的字符串</td>
+		</tr>
+		<tr>
+			<td>trim(str)</td>
+			<td>删除字符串两侧的空格</td>
+		</tr>
+		<tr>
+			<td>replace(str, s1, s2)</td>
+			<td>使用字符串 s2 替换字符串 str 中所有的字符串 s1</td>
+		</tr>
+		<tr>
+			<td>substring(str, n, len)</td>
+			<td>返回字符串 str 的子串，起始位置为 n，长度为 len</td>
+		</tr>
+		<tr>
+			<td>reverse(str)</td>
+			<td>返回字符串反转后的结果</td>
+		</tr>
+		<tr>
+			<td>locate(s1, str)</td>
+			<td>返回子串 s1 在字符串 str 中的起始位置</td>
+		</tr>
+	</table>
+	<table>
+		<caption>日期和时间函数</caption>
+		<tr>
+			<td>函数名称</td>
+			<td>作用</td>
+		</tr>
+		<tr>
+			<td>curdate()</td>
+			<td>获取系统当前日期</td>
+		</tr>
+		<tr>
+			<td>curtime()</td>
+			<td>获取系统当前时间</td>
+		</tr>
+		<tr>
+			<td>sysdate()</td>
+			<td>获取当前系统日期和时间</td>
+		</tr>
+		<tr>
+			<td>time_to_sec()</td>
+			<td>返回将时间转换成秒的结果</td>
+		</tr>
+		<tr>
+			<td>adddate()</td>
+			<td>执行日期加运算</td>
+		</tr>
+		<tr>
+			<td>sbudate()</td>
+			<td>执行日期减运算</td>
+		</tr>
+		<tr>
+			<td>date_format()</td>
+			<td>格式化输入日期和时间值</td>
+		</tr>
+	</table>
+	<table>
+		<caption>条件判断函数</caption>
+		<tr>
+			<th>函数名称</th>
+			<th>作用</th>
+		</tr>
+		<tr>
+			<td>if(expr, v1, v2)</td>
+			<td>如果 expr 表达式为 true 返回 v1，否则返回 v2</td>
+		</tr>
+		<tr>
+			<td>ifnull(v1, v2)</td>
+			<td>如果 v1 不为 null 返回 v1，否则返回 v2</td>
+		</tr>
+		<tr>
+			<td>case expre when v1 then r1 [when v2 then r2...] <br />[else rn] end</td>
+			<td>如果 expr 值等于 v1、v2 等，则返回对应位置 then 后面的结果<br />否则返回 else 后的结果rn</td>
+		</tr>
+	</table>
+	<table>
+		<caption>加密函数</caption>
+		<tr>
+			<th>函数名称</th>
+			<th>作用</th>
+		</tr>
+		<tr>
+			<td>md5(str)</td>
+			<td>对字符串 str 进行 md5 加密</td>
+		</tr>
+		<tr>
+			<td>encode(str, pwd_str)</td>
+			<td>使用 pwd 作为密码加密字符串 str</td>
+		</tr>
+		<tr>
+			<td>decode(str, pwd_str)</td>
+			<td>使用 pwd 作为密码解密字符串 str</td>
+		</tr>
+	</table>
+	<h2>4.4 为表和字段取别名</h2>
+	<p>
+		在查询数据时，可以为表和字段取别名，这个别名可以代替其指定的表和字段。
+	</p>
+	<h4>1. 为表取别名<h4>
+	<P>在查询操作时，如果表名很长使用起来就不太方便，这时可以为表取一个别名，用这个别名来代替表的名称。</P>
+	<code>
+		select * from <span class="tip">表名</span> [as] <span class="tip">别名</span>;
+	</code>
+	<p>这里，as 关键字用于指定表名的别名，可以省略不写。</p>
+	<h4>2. 为字段取别名</h4>
+	<p>在前面的查询操作中，每条记录中的列名都是定义表时的字段名，有时为了让显示查询结果更加直观，可以为字段取一个别名。</p>
+	<code>
+		select <span class="tip">字段名</span> [as] <span class="tip">别名</span>[, <span class="tip">字段名</span> [as] <span class="tip">别名</span>, ...] from <span class="tip">表名</span>;
+	</code>
+</body>
+</html>
