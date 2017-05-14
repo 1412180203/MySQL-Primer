@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-06</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第6章 事务与存储过程</h1>
+	<h2>6.1 事务管理</h2>
+	<p>事务处理机制在程序开发过程中有着非常重要的作用，它可以时整个系统更加安全，保证在同一个事务中的操作具有同步性。</p>
+	<h4>1. 事务的概念</h4>
+	<p>
+		所谓事务，就是针对数据库的一组操作，它可以由一条或多条 SQL 语句组成，同一个事物的操作具备同步的特点，如果其中由一条语句无法执行，那么所有的语句都不会执行，也就是说，事务中的语句要么都执行，要么都不执行。<br />
+		在数据库中使用事务时，必须先开启事务，开启事务的语句如下：
+	</p>
+	<code>
+		start transaction;
+	</code>
+	<p>
+		上述语句就用于开启事务，事务开启之后就可以执行 SQL 语句，SQL 语句执行成功后，需要使用相应语句提交事务，提交事务的语句如下：
+	</p>
+	<code>
+		commit;
+	</code>
+	<p>
+		需要注意的是，在 MySQL 中直接书写的 SQL 语句都是自动提交的，而事务中操作语句都需要使用 commit 语句手动提交，只有事务提交后其中的操作才会生效。<br />
+		如果不想提交当前事务还可以使用相关语句取消事务（也称回滚），语句如下：
+	</p>
+	<code>
+		rollback;
+	</code>
+	<p>
+		需要注意的是，rollback 语句只能针对未提交的事务执行回滚操作，已提交的事务是不能回滚的。
+	</p>
+	<p>
+		事务有很严格的定义，它必须同时满足4个特性，即原子性(Atomicity)、一致性(Consistency)、隔离性(Isolation)、持久性(Durability)，也就是人们俗称的 ACID 标准。
+	</p>
+	<h4>2. 事务的隔离级别</h4>
+	<p>
+		数据库是多线程并发访问的，所以很容易出现多个线程同时开启事务的情况，这样就会出现脏读、重复读以及幻读的情况。为了避免这种情况的发生，就需要为事务设置隔离级别。在 MySQL 中，事务有4种隔离级别，如下：
+	</p>
+	<p>
+		<strong>(1) READ UNCOMMITTED</strong><br />
+		READ UNCOMMITTED(读未提交)是事务种最低的级别，该级别下的事务可以读取到另一个事务中未提交的数据，也被成为脏读，这是相当危险的。由于级别较低，在实际开发中避免不了任何情况，所以一般很少使用。<br />
+		<strong>(2) READ COMMITTED</strong><br />
+		大多数的数据库管理系统的默认隔离级别都是 READ COMMITTED(读提交)(如 Oracle)，该级别下的事务只能读取其他事务已经提交的内容，可以避免脏读，但不能避免重复读和幻读。重复读就是在事务内重复读取了别的线程已经提交的数据，但两次读取的结果不一致，原因是查询的过程中其他的事务做了更新的操作。幻读是指在一个事务内两次查询中数据条数不一致，原因是查询的过程中其他事务左了添加操作。这两种情况并不算错误，但有些情况是不符合实际需求的。<br />
+		<strong>(3) REPEATABLE READ</strong><br />
+		REPEATABLE READ(可重复读)是 MySQL 默认的事务隔离级别，它可以避免脏读、不可重复读的问题，确保同一事务的多个实例在并发读取数据时，会看到同样的数据行。但理论上，该级别会出现幻读的情况，不过 MySQL 的存储引擎通过多版本并发控制机制解决了该问题，因此该级别时可以避免幻读的。<br />
+		<strong>(4) SERIALIZABLE</strong><br />
+		SERIALIZABLE(可串行化)是事务的最高隔离级别，它会强制对事务进行排序，使之不会发生冲突，从而解决脏读、幻读、重复读的问题。实际上，就是在每个读的数据行上加锁。这个级别可能导致大量的超时现象和锁竞争，实际应用很少使用。
+	</p>
+	<p>设置事务的隔离级别：</p>
+	<code>
+		set session transaction isolation level <span class="tip">隔离级别</span>;
+	</code>
+	<p>这里，session 表示当前会话，transaction 表示事务，isolation 表示隔离，level 表示级别，后面加上指定的隔离级别。</p>
+	<p>查询事务的隔离级别</p>
+	<code>
+		select @@tx_isolation;
+	</code>
+	<h2>6.2 存储过程的创建</h2>
+	<p>
+		在开发过程中，经常会遇到重复使用某一功能的情况，为此，MySQL 引入了存储过程。存储过程就是一条或多条 SQL 语句的集合，当对数据库进行一系列复杂操作时，存储过程可以将这些复杂操作封装成一个代码块，以便重复使用，大大减少数据开发人员的工作量。
+	</p>
+	<h4>1. 创建存储过程</h4>
+	<code>
+		create procedure <span class="tip">sp_name</span>([<span class="tip">proc_parameter</span>])<br />
+		[characteristics...] routine_body;
+	</code>
+	<p>
+		这里，create procedure 为用来创建存储过程的关键字，sp_name 为存储过程的名称，proc_parameter 为指定存储过程的参数列表，该参数列表的形式如下：
+	</p>
+	<code>
+		[in|out|inout] param_name type;
+	</code>
+	<p>
+		上述参数列表的形式中，in 表示输入参数，out 表示输出参数，inout 表示既可以输入也可以输出，param_name 表示参数名称，type 表示参数的类型，它可以是 MySQL 数据库中的任意类型。
+	</p>
+	<p>
+		在创建存储过程的语法格式中，characteristics 用于指定存储过程的特性，它的取值说明如下：<br />
+		(1) LANGUAGE SQL：说明 routine_body 部分是由 SQL 语句组成的，当前系统支持的语言为 SQL，SQL 是 LANGUAGE 的唯一值。<br />
+		(2) [NOT] DETERMINISTIC：指明存储过程执行的结果是否确定，DETERMINISTIC 表示结果是确定的，每次执行存储过程时，相同的输入会得到相同的输出。默认为 NOT DETERMINISTIC，结果不确定。<br />
+		(3) {CONTAINS SQL|NO SQL|READS SQL DATA|MODIFIES SQL DATA}：指明子程序使用 SQL 语句的限制。CONTAINS SQL 表明子程序包含 SQL 语句，但是不包含读写数据的语句、NO SQL 表明程序不包含 SQL 语句、READS SQL DATA 说明子程序包含读写数据的语句、MODIFIES SQL DATA 表明子程序包含写数据的语句。默认为 CONTAINS SQL。<br />
+		(5) COMMENT'string'：注释信息，可以用来描述存储过程。
+	</p>
+	<p>
+		routine_body 是 SQL 代码的内容，可以用 BEGIN...END 来表示 SQL 代码的开始和介绍。
+	</p>
+	<p>例如：创建一个查看 student 表的存储过程</p>
+	<code>
+		mysql> delimiter //<br />
+		mysql> create procedure Proc()<br />
+		&emsp;&emsp; -> BEGIN<br />
+		&emsp;&emsp; -> select * from student;<br />
+		&emsp;&emsp; -> END //<br />
+		Query OK, 0 rows affected (0.00 sec)<br />
+		<br />
+		mysql> delimiter ;
+	</code>
+	<p>
+		这里 “delimiter //” 语句的作用是将 MySQL 的结束符设置为 //，因为 MySQL 默认的语句结束符为分号 “;” ,为了避免与存储过程中 SQL 语句结束符想冲突，需要使用 delimiter 改变存储过程的结束符，并以 “END //” 结束存储过程。存储过程定义完毕后再使用 “delimiter ;”恢复默认结束符。
+	</p>
+	<h4>2. 变量的使用</h4>
+	<p>
+		在编写存储过程时，有时会需要使用变量保存数据处理过程中的值。在 MySQL 中，变量可以在子程序中声明并使用，这些变量的作用范围时在 BEGIN...END 程序中。<br />
+		变量的定义方法如下：
+	</p>
+	<code>
+		declare <span class="tip">var_name</span>[, <span class="tip">var_name</span>]... <span class="tip">date_type</span> [default <span class="tip">value</span>];
+	</code>
+	<p>
+		这里，var_name 为局部变量的名称。default value 子句给变量提供一个默认值。该值可以是一个常数，也可以是一个表达式。如果没有 default 子句，变量的初始值为 null。
+	</p>
+	<p>变量的赋值</p>
+	<code>
+		set <span class="tip">var_name</span> = <span class="tip">expr</span>[, <span class="tip">var_name</span> = <span class="tip">expr</span>]...;
+	</code>
+	<p>
+		除了可以使用 set 语句为变量赋值，还可以通过 select ... into 为一个或多个变量赋值，该语句可以把选定的列直接存储到对应位置的变量。
+	</p>
+	<code>
+		select <span class="tip">co_name</span> [...] into <span class="tip">var_name</span> [...] <span class="tip">table_expre</span>;
+	</code>
+	<p>
+		这里，col_name 表示字段名称，var_name 表示定义的变量的名称，table_expre 表示查询条件表达式，包括表名称和 where 子句。<br />
+		比如：
+	</p>
+	<code>
+		declare s_grade float;<br />
+		declare s_gender char(2);<br />
+		select grade, gender into s_grade, s_gender<br />
+		from student where name = 'rose';
+	</code>
+	<h4>3. 定义条件和处理程序</h4>
+	<p>
+		在实际开发中，经常需要对特定的条件进行处理，这些条件可以联系到错误以及子程序中的一般流程控制。定义条件是事先定义程序执行过程中遇到的问题，处理程序定义了在遇到这些问题时应当采取的处理方式，并且保证存储过程在遇到警告或错误时能继续执行。
+	</p>
+	<p>1.定义条件</p>
+	<code>
+		declare <span class="tip">condition_name</span> condition for [<span class="tip">condition_type</span>];<br />
+		// condition_type 的两种形式：<br />
+		[condition_type]:<br />
+		sqlstate[value] sqlstate_value|mysql_error_code
+	</code>
+	<p>
+		这里，condition_name 表示所定义的条件的名称，condition_type 表示条件的类型，sqlstate_value 和 mysql_error_code 都可以表示 MySQL 的错误， sqlstate_value 是长度为5的字符串类型错误代码，mysql_error_code 为数值类型的错误代码。例如：ERROR1142(42000) 中，sqlstat_value 的值是 42000，mysql_error_code 的值是1142。<br />
+		例如：定义 “ERROR1148(42000)” 错误，名称为 command_not_allowed。
+	</p>
+	<code>
+		//方法一：使用 sqlstate_value<br />
+		declare command_not_allowed condition for sqlstate'42000';<br />
+		//方法二：使用 mysql_error_code<br />
+		declare command_not_allowed condition for 1148;
+	</code>
+	<p>2. 定义处理程序</p>
+	<code>
+		declare <span class="tip">handler_type</span> handler for <span class="tip">condition_value</span>[, ...] <span class="tip">sp_statement</span><br />
+		handler_type:<br />
+		&emsp;continue|exit|undo<br />
+		condition_value:<br />
+		&emsp;|condition_name<br />
+		&emsp;|sqlwarning<br />
+		&emsp;|not found<br />
+		&emsp;|sqlexception<br />
+		&emsp;|mysql_error_code
+	</code>
+	<p>
+		上述语法格式中，handler_type 为错误处理方式， 参数取三个值：continue、exit 和 undo。continue 表示遇到错误不处理，继续执行，exit 表示遇到错误马上退出，undo 表示遇到错误后撤回之前的操作，MySQL 中暂时不支持这样的操作。<br />
+		sp_statement 参数为程序语句段，表示在遇到定义的错误时，需要执行的存储过程<br />
+		condition_value 表示错误类型，可以有以下取值。<br />
+		(1) sqlstate[value] sqlstate_value 包含5个字符的字符串错误值。<br />
+		(2) condition_name 表示 declare condition 定义的错误条件名称。<br />
+		(3) sqlwarning 匹配所有以01开头的 sqlstate 错误代码。<br />
+		(4) not found 匹配所有以02开头的 sqlstate 错误代码。<br />
+		(5) sqlexception 匹配所有没有被 sql waring 或 not found 捕获的 sqlstate 错误代码。<br />
+		(6) mysql_error_code 匹配数值类型错误代码。
+	</p>
+	<p>例如：定义处理程序的几种方式：</p>
+	<code>
+		//方法一：捕获 sqlstate_value<br />
+		declare continue handler for sqlstate '42S02' set @info = 'no_such_table';<br /><br />
+
+		//方法二：捕获 mysql_error_code<br />
+		declare continue handler for 1146 set @info = 'no_such_table';<br /><br />
+
+		//方法三：先定义条件，然后调用<br />
+		declare no_such_table condition for 1146;<br />
+		declare continue handler for no_such_table set @info = 'error';<br /><br />
+
+		//方法四：使用 sqlwarning<br />
+		declare exit handler for sqlwaring set @info='error';<br /><br />
+
+		//方法五：使用 not found<br />
+		declare exit handler for not found set @info = 'no_such_table';<br /><br />
+
+		//方法六：使用 sqlexception<br />
+		declare exit handler for sqlexception set @info = 'error';
+	</code>
+	<h4>4. 光标的使用</h4>
+	<p>
+		在编写存储过程时，查询语句可能会返回多条记录，如果数据量非常大，则需要使用光标来逐条读取查询结果集中的记录。光标时一种用于轻松处理多行数据的机制。
+	</p>
+	<p>1. 光标的声明</p>
+	<p>
+		想要使用光标处理结果集中的数据，需要先声明光标。光标必须声明在声明变量、条件之后，声明处理程序之前。
+	</p>
+	<code>
+		declare <span class="tip">cursor_name</span> cursor for <span class="tip">select_statement</span>;
+	</code>
+	<p>
+		这里，cursor_name 表示光标的名称， select_statement 表示 select 语句的内容，返回一个用于创建光标的结果集。例如：
+	</p>
+	<code>
+		declare cursor_student cursor for select s_name, s_gender from student;
+	</code>
+	<p>2. 光标的使用</p>
+	<p>声明完光标后就可以使用光标了，使用光标之前首先要打开光标。</p>
+	<code>
+		open <span class="tip">cursor_name</span><br />
+		fetch <span class="tip">cursor_name</span> into <span class="tip">var_name</span>[, <span class="tip">var_name</span>]...
+	</code>
+	<p>
+		这里，cursor_name 表示参数的名称，var_name 表示光标中的 select 语句查询出来的信息存入该参数中，需要注意的时，var_name 必须在声明光标之前就定义好。
+	</p>
+	<p>3. 光标的关闭</p>
+	<p>
+		使用完光标后要将光标关闭，如果没有明确地将光标关闭，它会在其声明的复合语句的末尾被关闭。
+	</p>
+	<code>
+		close <span class="tip">cursor_name</span>;
+	</code>
+	<h4>5.流程控制的使用</h4>
+	<p>
+		流程控制语句用于将多个 SQL 语句划分或组合成符合业务逻辑的代码块。
+	</p>
+	<p>1. if 语句</p>
+	<p>if 语句是指如果满足某种条件，就根据判断的结果为 true 或 false 执行相应的语句</p>
+	<code>
+		if <span class="tip">expr_condition</span> then <span class="tip">statement_list</span><br />
+		&emsp;&emsp;[else if <span class="tip">expr_condition</span> then <span class="tip">statement_list</span>]<br />
+		&emsp;&emsp;[else <span class="tip">statement_list</span>]<br />
+		end if
+	</code>
+	<p>例如：</p>
+	<code>
+		if val is null<br />
+		&emsp;&emsp;then select 'val is null';<br />
+		&emsp;&emsp;else select 'val is not null';<br />
+		end if;
+	</code>
+	<p>注意：if 语句都需要使用 end if 来结束，不可省略。</p>
+	<p>2. case 语句</p>
+	<p>case 是另一个进行条件判断的语句，该语句有两种格式，第一种格式如下</p>
+	<code>
+		case <span class="tip">case_expr</span><br />
+		&emsp;&emsp;when <span class="tip">when value</span> then <span class="tip">statement_list</span><br />
+		&emsp;&emsp;[when <span class="tip">when value</span> then <span class="tip">statement_list</span>]...<br />
+		&emsp;&emsp;[else <span class="tip">statement_list</span>]<br />
+		end case
+	</code>
+	<p>例如：</p>
+	<code>
+		case val<br />
+		&emsp;&emsp;when 1 then select 'value is 1';<br />
+		&emsp;&emsp;when 2 then select 'value is 2';<br />
+		&emsp;&emsp;else select 'value id not 1 or 2';<br />
+		end case;
+	</code>
+	<p>第二种格式如下：</p>
+	<code>
+		case<br />
+		&emsp;&emsp;when <span class="tip">expr_condition</span> then <span class="tip">statement_list</span><br />
+		&emsp;&emsp;[when <span class="tip">expr_condition</span> then <span class="tip">statement_list</span>]<br />
+		&emsp;&emsp;[else <span class="tip">statement_list</span>]<br />
+		end case;
+	</code>
+	<p>3. loop 语句</p>
+	<p>
+		loop 循环语句用来重复执行某些语句，与 if 和 case 语句相比，loop 只是创建一个循环操作的过程，并不进行条件判断。loop 内的语句一直重复执行直到跳出循环语句。
+	</p>
+	<code>
+		[<span class="tip">loop_label</span>:]loop<br />
+		&emsp;&emsp;<span class="tip">statement_list</span><br />
+		end loop[<span class="tip">loop_label</span>]
+	</code>
+	<p>例如：使用 loop 语句进行循环操作</p>
+	<code>
+		declare id int default 0;<br />
+		add_loop:loop<br />
+		set id = id + 1;<br />
+		&emsp;&emsp;if id >= 10 then leave add_loop;<br />
+		&emsp;&emsp;end if;<br />
+		end loop add_loop;
+	</code>
+	<p>4. leave 语句</p>
+	<p>
+		通过学习 loop 语句的使用可以知道，当不满足循环条件时，需要使用 leave 语句退出循环。leave 语句用于退出任何被标注的流程控制结构。
+	</p>
+	<code>
+		leave label;
+	</code>
+	<p>这里，label 表示循环的标志，通常情况下，leave 语句与 begin...end、循环语句一起使用。</p>
+	<p>5. iterate 语句</p>
+	<p>iterate 的意思是再次循环，iterate 语句用于将执行顺序转到语句段的开头处。</p>
+	<code>
+		iterate label;
+	</code>
+	<p>这里 label 表示循环的标志，iterate 语句只可以出现在 loop、repeat 和 while 语句内。例如：</p>
+	<code>
+		create procedure doiterate()<br />
+		BEGIN<br />
+		declare p1 int default 0;<br />
+		my_loop:loop<br />
+		&emsp;&emsp;set p1 = p1 + 1;<br />
+		&emsp;&emsp;if p1 < 10 then iterate my_loop;<br />
+		&emsp;&emsp;elseif p1 > 20 then leave my_loop;<br />
+		&emsp;&emsp;end if;<br />
+		&emsp;&emsp;select 'p1 is between 10 and 20';<br />
+		end loop my_loop;<br />
+		END
+	</code>
+	<p>6. repeat 语句</p>
+	<p>
+		repeat 语句用于创建一个带有条件判断的循环过程，每次语句执行完毕之后，会对条件表达式进行判断，如果表达式为真，则循环结束，否则重复执行循环中的语句。
+	</p>
+	<code>
+		[<span class="tip">repeat_label</span>:]repeat<br />
+		&emsp;&emsp;<span class="tip">statement_list</span><br />
+		&emsp;&emsp;until <span class="tip">expr_condition</span><br />
+		end repeat[<span class="tip">repeat_label</span>];
+	</code>
+	<p>例如</p>
+	<code>
+		declare id int default 0;<br />
+		repeat<br />
+		set id = id + 1;<br />
+		until id >= 10;<br />
+		end repeat;
+	</code>
+	<p>7. while 语句</p>
+	<p>
+		while 语句创建一个带条件判断的循环过程，与 repeat 不同的是，while 在语句执行时，先对指定的表达式进行判断，如果为真，则执行循环内的语句，否则退出循环。
+	</p>
+	<code>
+		[<span class="tip">while_label</span>:] while <span class="tip">exp_condition</span> do<br />
+		&emsp;&emsp;<span class="tip">statement_list</span><br />
+		end while [<span class="tip">while_label</span>];
+	</code>
+	<p>例如：</p>
+	<code>
+		declare i int default 0;<br />
+		while i < 10 do<br />
+		set i = i + 1;<br />
+		end while;
+	</code>
+	<h2>6.3 存储过程的使用</h2>
+	<h4>1. 调用存储过程</h4>
+	<p>
+		存储过程有多种调用方法。存储过程必须使用 call 语句调用，并且存储过程和数据库相关，如果执行其他数据库中的存储过程，需要指定数据库名称。
+	</p>
+	<code>
+		call <span class="tip">sp_name</span>([<span class="tip">parameter</span>[, ...]]);
+	</code>
+	<h4>2. 查看存储过程</h4>
+	<p>
+		MySQL 存储了存储过程的状态信息，用户可以使用 show status 语句或 show create 语句来查看，也可以直接从系统的 information_schema 数据库中查询。
+	</p>
+	<p>1. show status 语句查看存储过程的状态</p>
+	<code>
+		show {procedure|function} status [like '<span class="tip">pattern</span>'];
+	</code>
+	<p>这里，procedure 和 function 分别表示查看存储过程和函数，like 语句表示匹配的名称。</p>
+	<p>2. show create 语句查看存储过程的状态</p>
+	<code>
+		show create {procedure|function} <span class="tip">sp_name</span>;
+	</code>
+	<p>3. 从 information_schema.routines 表中查看存储过程的信息</p>
+	<p>
+		在 MySQL 中存储过程和函数的信息存储在 information_schema 数据库下的 routines 表中。可以通过查询该表的记录来查询存储过程的信息。
+	</p>
+	<code>
+		select * from information_schema.routines<br />
+		where routine_name = '<span class="tip">sp_name</span>' and routine_type = 'procedure' \G;
+	</code>
+	<h4>3. 修改存储过程</h4>
+	<code>
+		alter {procedure|function} <span class="tip">sp_name</span> [<span class="tip">characteristic</span>...];
+	</code>
+	<p>
+		这里，sp_name 表示存储过程或函数的名称，characteristic 表示要修改存储过程的哪个部分，characteristic 的取值如下：<br />
+		(1) CONTAINS SQL 表明子程序包含 SQL 语句，但是不包含读写数据的语句。<br />
+		(2) NO SQL 表明程序不包含 SQL 语句。<br />
+		(3) READS SQL DATA 说明子程序包含读写数据的语句。<br />
+		(4) MODIFIES SQL DATA 表明子程序包含写数据的语句。<br />
+		(5) SQL SECURITY {DEFINER|INVOKER} 指明谁有权限来执行。<br />
+		(6) DEFINER 表示只有定义者自己才能够执行。<br />
+		(7) INVOKER 表示调用者可以执行。<br />
+		(8) COMMENT'string' 表示注释信息。
+	</p>
+	<h4>4. 删除存储过程</h4>
+	<p>
+		当数据库中存在废弃的存储过程时，需要删除。
+	</p>
+	<code>
+		drop {procedure|function} [if exists] <span class="tip">sp_name</span>;
+	</code>
+</body>
+</html>
