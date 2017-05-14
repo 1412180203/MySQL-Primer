@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-08</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第8章 数据库的高级操作</h1>
+	<h2>8.1 数据库备份与还原</h2>
+	<h3 class="dot">数据库的备份</h3>
+	<h4>1. 备份单个数据库</h4>
+	<code>
+		mysqldump -u <span class="tip">username</span> -p <span class="tip">dbname</span> [<span class="tip">tbname1</span> [<span class="tip">tbname2</span>...]] > <span class="tip">filename.sql</span>
+	</code>
+	<p>
+		这里，username 表示用户名、password 表示登录密码、dbname 表示需要备份的数据库名称、tbname 表示数据库中的表名，可以指定一个或多个表，多个表之间用空格分隔，如果不指定则备份整个数据库、filename.sql 表示备份文件的名称，文件名可以加上绝对路径。<br />
+		需要注意的是，在使用 mysqldump 命令备份数据库时，直接在 DOS 命令行窗口中执行该命令即可，不需要登录到 MySQL 数据库。
+	</p>
+	<h4>2. 备份多个数据库</h4>
+	<code>
+		mysqldump -u <span class="tip">username</span> -p --databases <span class="tip">dbname1</span> [<span class="tip">dbname2</span> <span class="tip">dbname3</span> ...] > <span class="tip">filename.sql</span>
+	</code>
+	<p>
+		上述语法格式中，“--databases” 参数后面至少应指定一个数据库名称，如果有多个数据库，则名称之间用空格隔开。
+	</p>
+	<h4>3. 备份所有数据库</h4>
+	<code>
+		mysqldump -u <span class="tip">username</span> -p -all-databases <span class="tip">filename.sql</span>
+	</code>
+	<p>
+		如果使用 “--all-databases” 参数备份了所有的数据库，那么在还原数据库时，不需要创建数据库并指定要操作的数据库，因为对应的备份文件中包含 create database 语句和 use 语句。
+	</p>
+	<h3 class="dot">数据的还原</h3>
+	<p>
+		当数据库的数据遭到破坏时，可以通过备份好的数据库文件进行还原，这里所说的还原时指还原数据库中的数据，而不是库是不能被还原的。备份文件实际上就是由多个 create、insert 和 drop 语句组成，因此只要使用 mysql 命令执行这些语句就可以将数据还原。注意，这里直接在 DOS 命令行窗口中执行该命令即可，不需要登录到 MySQL 数据库。 
+	</p>
+	<code>
+		mysql -u <span class="tip">username</span> -p [<span class="tip">dbname</span>] < <span class="tip">filename.sql</span>
+	</code>
+	<p>
+		这里，dbname 表示要还原的数据库名称，由于库是不能被还原的，因此先要创建一个数据库，然后再还原到这个数据库中。如果使用 mysqldump 命令备份的 filename.sql 文件中包含创建数据库的语句（备份多个或全部数据库时有包含，备份一个时不包含），则不需要指定数据库。
+	</p>
+	<p>除此之外，还可以登录到数据库，然后创建一个新的数据库，进入到该数据库，使用 source 命令来还原数据</p>
+	<code>
+		source <span class="tip">filename.sql</span>
+	</code>
+	<h2>8.2 用户管理</h2>
+	<p>
+		MySQL 中的用户分为 root 用户和普通用户，root 用户为超级管理员，具有所有权限，如创建用户、删除用户、管理用户等，而普通用户只拥有被赋予的某些权限。
+	</p>
+	<h3 class="dot">user 表</h3>
+	<p>
+		在安装 MySQL 时，会自动安装一个名为 mysql 的数据库，该数据库中的表都是权限表，如 user、db、host、tables_priv、column_priv 和 procs_priv，其中 user 表是最重要的一个权限表，它记录了允许连接到服务器的账号信息以及这些全局级的权限信息，通过操作该表就可以对这些信息进行修改。
+	</p>
+	<h4>1. 用户列</h4>
+	<p>
+		user 表的用户列包括 Host、User、Password，分别代表主机名、用户名和密码。其中 Host 和 User 列为 user 表的联合主键，当用户与服务器建立连接时，输入的用户名、主机名和密码必须匹配 user 表中对应的字段，只有这三个值都匹配的时候，才允许建立连接。当修改密码时，只需要修改 user 表中的 Password 字段的值即可。<br />
+		注意，MySql5.7 已经将 Password 字段改成 authentication_string。
+	</p>
+	<h4>2. 权限列</h4>
+	<p>
+		user 表的权限列包括 Select_priv、Insert_priv、Update_priv 等以 priv 结尾的字段，这些字段决定了用户的权限，其中包括查询权限、修改权限、关闭服务等权限。<br />
+		user 表对应的权限是针对所有数据库的，并且这些权限列的数据类型都是 ENUM，取值只有 N 或 Y，其中 N 表示该用户没有对应权限，Y 表示该用户有对应权限，为了安全起见，这么字段的默认值都为 N，如果需要可以对其进行修改。
+	</p>
+	<h4>3. 安全列</h4>
+	<p>
+		user 表的安全列用于管理用户的安全信息，其中包括6个字段：<br />
+		(1) ssl_type 和 ssl_cipher：用于加密。<br />
+		(2) x509_issuer 和 x509_subject 标准：可以用来标识用户。<br />
+		(3) plugin 和 authentication_strin：用于存储与授权相关的插件。<br />
+		通常标准的发行版不支持 ssl 加密，初学者可以使用 show variables like 'have_openssl' 语句查看，如果 have_openssl 的取值为 disabled，则表示不支持加密。
+	</p>
+	<h4>4. 资源控制列</h4>
+	<p>
+		user 表的资源控制列是用于限制用户使用的资源，其中包括4个字段：<br />
+		(1) max_questions：每小时允许用户执行查询操作的次数。<br />
+		(2) max_updates：每小时允许用户执行更新操作的次数。<br />
+		(3) max_connections：每小时允许用户建立连接的次数。<br />
+		(4) max_user_connections：允许单个用户同时建立连接的次数。
+	</p>
+	<h3 class="dot">创建普通用户</h3>
+	<p>在创建新用户之前，可以先查看一下 mysql.user 表中有哪些用户。</p>
+	<code>
+		mysql> use mysql;<br />
+		mysql> select host, user, authentication_string from user;
+	</code>
+	<h4>1. 使用 grant 语句创建用户</h4>
+	<p>
+		grant 语句不仅可以创建新用户，还可以对用户进行授权，该语句会自动加载权限表，不需要手动刷新，而且安全、准确、错误少，因此，使用 grant 语句是创建用户最常用的方法。
+	</p>
+	<code>
+		grant <span class="tip">privileges</span> on <span class="tip">database.table</span><br />
+		&emsp;&emsp;to '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [identified by [password] '<span class="tip">password</span>']<br />
+		&emsp;&emsp;[, '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [identified by [password] '<span class="tip">password</span>']]...<br />
+	</code>
+	<p>
+		这里，privileges 参数表示该用户具有的权限信息，database.table 表示新用户的权限范围表，可以在指定的数据库、表上使用自己的权限，username 参数是新用户的名称，hostname 参数是主机名，password 参数是新用户的密码。
+	</p>
+	<h4>2. 使用 create user 语句创建用户</h4>
+	<p>
+		使用 create user 语句创建新用户时，服务器会自动修改相应的授权表，该语句创建的新用户时没有任何权限的。
+	</p>
+	<code>
+		create user '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [identified by [password] '<span class="tip">password</span>']<br />
+		&emsp;&emsp;&emsp;&emsp;&emsp;&nbsp;[, '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [identified by [password] '<span class="tip">password</span>']]...<br />
+	</code>
+	<h4>3. 使用 insert 语句创建用户</h4>
+	<code>
+		insert into mysql.user(Host, User, authentication_string, ssl_cipher, x509_issuer, x509_subject)<br />
+		values('<span class="tip">hostname</span>', '<span class="tip">username</span>', password('<span class="tip">password</span>'), '', '', '');
+	</code>
+	<p>
+		使用 insert 语句创建用户时，通常只需添加 Host、User 和 Password（MySQL5.7 用 authentication_string 来保存密码）这三个字段，其他的字段取默认值，但由于 ssl_cipher、x509_issuer、x509_subject 字段是没有默认值的，因此 insert 语句创建用户时，还需要为这几个字段设置初始值。
+	</p>
+	<p>
+		需要注意的是，由于 insert 语句没有刷新权限表的功能，因此新添加的用户暂时是不能使用的，为了让用户生效，还需要手动刷新当前的权限表或重新启动 MySQL 服务。刷新权限表的语句如下：
+	</p>
+	<code>
+		flush rivileges;
+	</code>
+	<h3 class="dot">删除普通用户</h3>
+	<h4>1. 使用 drop user 语句删除用户</h4>
+	<code>
+		drop user '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [, '<span class="tip">username</span>'@'<span class="tip">hostname</span>']...;
+	</code>
+	<p>
+		drop user 语句可以同时删除一个或多个用户，多个用户之间用逗号隔开。使用 drop user 语句删除用户时，必须拥有 drop user 的权限。
+	</p>
+	<h4>2. 使用 delete 语句删除用户</h4>
+	<code>
+		delete from mysql.user where Host = '<span class="tip">hostname</span>' and User = '<span class="tip">username</span>';
+	</code>
+	<p>
+		在使用 delete 语句时必须拥有对 mysql.user 表的 delete 权限。由于直接对 user 表进行操作，执行完命令后需要使用 “flush privileges” 语句重新加载用户权限。
+	</p>
+	<h3 class="dot">修改用户密码</h3>
+	<p>root 用户具有最高的权限，不仅可以修改自己的密码，还可以修改普通用户的密码，而普通用户只能修改自己的密码</p>
+	<h4>1. 修改 root 用户的密码</h4>
+	<p>(1) 使用 mysqladmin 命令修改 root 用户密码</p>
+	<p>
+		mysqladmin 命令通常用于执行一些管理性的工作，以及显示服务器状态等，在 MySQL 中可以使用该命令修改 root 用户的密码。
+	</p>
+	<code>
+		mysqladmin -u <span class="tip">username</span> [-h <span class="tip">hostname</span>] -p password <span class="tip">new_password</span><br />
+		Enter password:<span class="tip">old_password</span>
+	</code>
+	<p>
+		参数 -h 用于指定对应的主机，默认为 localhost。
+	</p>
+	<p>(2) 使用 update 语句修改 root 用户密码</p>
+	<p>
+		由于所有的用户信息都存放在 mysql.user 表中，因此，只要 root 用户登录到 MySQL 服务器，使用 update 语句就可以直接修改自己的密码。
+	</p>
+	<code>
+		update mysql.user set authentication_string = password('<span class="tip">new_password</span>')<br />
+		where User = '<span class="tip">username</span>' and Host = 'hostname';
+	</code>
+	<p>
+		需要注意的是，由于 update 语句不能刷新权限表，上述语句执行成功后，还需要使用 flush privileges 重新加载权限表，否则修改后的密码不会生效。
+	</p>
+	<p>(3) 使用 set 语句修改 root 用户的密码</p>
+	<code>
+		set password = password('<span class="tip">new_password</span>');
+	</code>
+	<p>
+		需要注意的是，由于 set 语句没有对密码加密的功能，因此，新密码必须使用 passwor() 函数加密，并且新密码需要使用引号括起来。
+	</p>
+	<h4>2. root 用户修改普通用户的密码</h4>
+	<p>(1) 使用 grant 语句修改普通用户密码</p>
+	<p>
+		grant 语句的作用比较多，不仅可以创建用户为用户授权，还可以修改用户的密码，通常情况下，为了不影响当前账号的权限，可以使用 grant usage 语句修改指定账号的密码。
+	</p>
+	<code>
+		grant usage on *.* to '<span class="tip">username</span>'@'<span class="tip">localhost</span>' identified by [password] '<span class="tip">new_password</span>';
+	</code>
+	<p>(2) 使用 update 语句修改普通用户的密码</p>
+	<code>
+		update mysql.user set authentication_string = password('<span class="tip">new_password</span>')<br />
+		where User = '<span class="tip">username</span>' and Host = 'hostname';
+	</code>
+	<p>需要注意的是，使用上述语句修改完普通用户的密码后，还需要使用 flush privileges 语句重新加载权限表。</p>
+	<p>(3) 使用 set 语句修改普通用户的密码</p>
+	<code>
+		set password for '<span class="tip">username</span>'@'<span class="tip">hostname</span>' = password('<span class="tip">new_password</span>');
+	</code>
+	<h4>3. 普通用户修改密码</h4>
+	<code>
+		set password = password('<span class="tip">new_password</span>');
+	</code>
+	<h4>4. 解决 root 用户密码丢失</h4>
+	<p>(1) 停止 MySQL 服务</p>
+	<code>
+		net stop mysql
+	</code>
+	<p>(2) 使用 --skip-grant-tables 启动 MySQL 服务</p>
+	<p>
+		MySQL 服务器中有一个 skip-grant-tables 选项，它可以停止 MySQL 的权限判断，也就是任何用户都可以访问数据库，并且通过该选项也可以启动 MySQL 服务，再 “运行” 对话框中执行如下命令：
+	</p>
+	<code>
+		mysqld --skip-grant-tables
+	</code>
+	<p>(3) 登陆 MySQL 服务器</p>
+	<p>
+		重新开启一个“运行”对话框，在“运行”对话框中登陆 MySQL 服务器
+	</p>
+	<code>
+		mysql -u root
+	</code>
+	<p>(4) 使用 update 语句设置 root 用户密码</p>
+	<code>
+		update mysql.user set authentication_string = password('<span class="tip">new_password</span>')<br />
+		where User = 'root' and Host = 'localhost';
+	</code>
+	<p>(5) 加载权限表</p>
+	<p>
+		MySQL 密码设置完成后，还需要重新加载权限表，让设置的密码生效。
+	</p>
+	<code>
+		flush privileges;
+	</code>
+	<h2>8.3 权限管理</h2>
+	<p>在 MySQL 数据库中，为了保证数据的安全性，数据管理员需要为每个用户赋予不同的权限，以满足不同用户的需求。</p>
+	<h3 class="dot">MySQL 的权限</h3>
+	<p>
+		(1) create 和 drop 权限，可以创建数据库、表、索引，或者删除已有的数据库、表、索引<br />
+		(2) insert、delete、update、select 权限，可以对数据库中的表进行增删改查操作。<br />
+		(3) index 权限，可以创建或删除索引，适用于所有的表。<br />
+		(4) alter权限，可以修改表的结构或重命名表。<br />
+		(5) grant 权限，允许为其他用户授权，可用于数据库和表。<br />
+		(6) file 权限，被赋予该权限的用户能读写 MySQL 服务器上的任何文件。
+	</p>
+	<h3 class="dot">授予权限</h3>
+	<code>
+		grant <span class="tip">privileges</span> [(<span class="tip">columns</span>)][, <span class="tip">privileges</span> [(<span class="tip">columns</span>)]] on <span class="tip">database.table</span><br />
+		&emsp;&emsp;to '<span class="tip">username</span>'@'<span class="tip">hostname</span>'  [identified by [password] '<span class="tip">password</span>']<br />
+		&emsp;&emsp;[, '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [identified by [password] '<span class="tip">password</span>']]...<br />
+		&emsp;&emsp;[with <span class="tip">with_option</span> [<span class="tip">with_option</span>]...]
+	</code>
+	<p>
+		上述语法格式中，privileges 表示权限类型，columns 参数表示权限作用于某一列，该参数可以省略不写，此时权限作用于整个表，username 表示用户，hostname 表示主机，identified by 参数为用户设置密码，password 为用户的新密码。<br />
+		with 关键字后面可以带有多个参数 with_option，这个参数有5个取值：<br />
+		(1) GRANT OPTION：将自己的权限授予其他用户。<br />
+		(2) MAX_QUERIES_PER_HOUR count：设置每个小时最多可以执行多少次查询。<br />
+		(3) MAX_UPDATES_PER_HOUR count：设置每个小时最多可以执行多少次更新。<br />
+		(4) MAX_CONNECTIONS_PER_HOUR count：设置每个小时最大的连接数量。<br />
+		(5) MAX_USER_CONNECTIONS：设置每个用户最多可以同时建立连接的数量。
+	</p>
+	<p>例如：</p>
+	<code>
+		grant insert, select on *.* to 'user4'@'localhost' identified by '123'<br />
+		with grant option;
+	</code>
+	<h3 class="dot">查看权限</h3>
+	<code>
+		show grants for '<span class="tip">username</span>'@'<span class="tip">hostname</span>';
+	</code>
+	<h3 class="dot">收回权限</h3>
+	<code>
+		revoke <span class="tip">privileges</span> [(<span class="tip">columns</span>)][, <span class="tip">privileges</span> [(<span class="tip">columns</span>)]] on <span class="tip">database.table</span><br />
+		from '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [, '<span class="tip">username</span>'@'<span class="tip">hostname</span>']...;
+	</code>
+	<p>
+		如果用户的权限比较多，想一次性将其收回，可以使用如下语法：
+	</p>
+	<code>
+		revoke all privileges, grant option<br />
+		from '<span class="tip">username</span>'@'<span class="tip">hostname</span>' [, '<span class="tip">username</span>'@'<span class="tip">hostname</span>']...;
+	</code>
+</body>
+</html>
