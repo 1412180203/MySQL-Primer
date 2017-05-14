@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>chapter-07</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<h1>第7章 视图</h1>
+	<h2>7.1 视图概述</h2>
+	<p>
+		视图是从一个或多个表中导出来的表，它是一种虚拟存在的表，并且表的结构和数据都依赖与基本表。通过视同不仅可以看到存放再基本表中的数据，并且还可以像操作基本表一样，对视图中存放的数据进行查询、修改和删除。与直接操作基本表相比，视图具有以下有点：(1)简化查询语句。(2)安全性。(3)逻辑数据独立性。
+	</p>
+	<h2>7.2 视图管理</h2>
+	<h3 class="dot">创建视图的语法格式</h3>
+	<code>
+		create or replace [algorithm={undefined|merge|temptable}]<br />
+		view <span class="tip">view_name</span> [(<span class="tip">column_list</span>)]<br />
+		as <span class="tip">select_statement</span><br />
+		[with [cascaded|local] check option];
+	</code>
+	<p>
+		(1) create：表示创建视图的关键字。<br />
+		(2) or replace：如果给定了此子句，表示该语句能够替换已有视图。<br />
+		(3) algorithm：可选，表示视图选择的算法。<br />
+		(4) undefined：表示 MySQL 将自动选择所要使用的算法。<br />
+		(5) merge：表示将使用视图的语句与视图定义合并起来，使得视图定义的某一部分取代语句对应部分。<br />
+		(6) temptable：表示将视图的结果存入临时表，然后使用临时表执行语句。<br />
+		(7) view_name：表示要创建的视图名称。<br />
+		(8) column_list：可选，表示属性清单。指定了视图中各个属性的名，默认情况下，与 select 语句中查询的属性相同。<br />
+		(9) as：表示指定视图要执行的操作。<br />
+		(10) select_statement：是一个完整的查询语句，表示从表或视图中查出某些满足条件的记录，将这些记录导入视图中。<br />
+		(11) with check option：可选，表示创建视图时要保证在该视图的权限范围之内。<br />
+		(12) cascaded：可选，表示创建视图时，需要满足跟视图有关的所有相关视图表和表的条件，该参数为默认值。<br />
+		(13) local：可选，表示创建视图时，只要满足该视图本身定义的条件即可。
+	</p>
+	<p>
+		创建视图时要求具有针对视图的 create view 权限，以及针对由 select 语句选择的每一列上的某些权限。对于在 select 语句中其他地方使用的列，必须具有 select 权限。如果还有 or replace 子句，必须在视图上具有 drop 权限。<br />
+		需要注意的是，视图属于数据库，在默认情况下，将在当前数据库创建新视图，要想在给定数据库中明确创建视图，创建时应将名称指定为 db_name.view_name。
+	</p>
+	<h3 class="dot">查看视图</h3>
+	<p>
+		查看视图，是指查看数据库中已经存在的视图的定义。查看视图必须要有 show view 的权限。
+	</p>
+	<h4>1. 使用 describe 语句查看视图，可以查看视图的字段信息，包括字段名、字段类型等信息</h4>
+	<code>
+		describe <span class="tip">视图名</span> //可以简写为：&emsp; desc <span class="tip">视图名</span>;
+	</code>
+	<h4>2. 使用 show table status 语句查看视图，可以查看视图的基本信息</h4>
+	<code>
+		show table status like '<span class="tip">视图名</span>';
+	</code>
+	<h4>3. 使用 show create view 查看视图，不仅可以查看创建视图时的定义语句，还可以查看视图的字符编码</h4>
+	<code>
+		show create view <span class="tip">视图名</span>;
+	</code>
+	<h3 class="dot">修改视图</h3>
+	<p>
+		所谓修改视图是指修改数据库中存在的视图的定义，比如，当基本表中某些字段发生变化时，可以通过修改视图的方式来保持视图与基本表的一致性。
+	</p>
+	<h4>1. 使用 create or replace view 语句修改视图</h4>
+	<code>
+		create or replace [algorithm={undefined|merge|temptable}]<br />
+		view <span class="tip">view_name</span> [(<span class="tip">column_list</span>)]<br />
+		as <span class="tip">select_statement</span><br />
+		[with [cascaded|local] check option];
+	</code>
+	<p>
+		这里，如果修改的视图存在，那么将使用修改语句对视图进行修改，如果视图不存在，那么将创建一个视图。
+	</p>
+	<h4>2. 使用 alter 语句修改视图</h4>
+	<code>
+		alter [algorithm={undefined|merge|temptable}]<br />
+		view <span class="tip">view_name</span> [(<span class="tip">column_list</span>)]<br />
+		as <span class="tip">select_statement</span><br />
+		[with [cascaded|local] check option];
+	</code>
+	<h3 class="dot">更新视图</h3>
+	<p>
+		更新视图是指通过视图来更新、插入、删除基本表中的数据。因为视图是一个虚拟表，其中没有数据，当通过视图更新数据时其实是在更新基本表中的数据，如果对视图中的数据进行增加或删除操作时，实际上就是在对基本表中的数据进行增加或删除操作。
+	</p>
+	<h4>1. 使用 update 语句更新视图</h4>
+	<code>
+		update <span class="tip">视图名</span> set <span class="tip">字段名</span> = <span class="tip">字段值</span>[, <span class="tip">字段名</span> = <span class="tip">字段值</span>, ...];
+	</code>
+	<h4>2. 使用 insert 语句更新视图</h4>
+	<code>
+		insert into <span class="tip">表名</span>(<span class="tip">字段名 1</span>, <span class="tip">字段名 2</span>, ...) <br />
+		&emsp;&emsp;values(<span class="tip">值 1</span>, <span class="tip">值 2</span>, ...);
+	</code>
+	<h4>3. 使用 delete 语句更新视图</h4>
+	<code>
+		delete from <span class="tip">视图名</span> [where <span class="tip">条件表达式</span>];
+	</code>
+	<p>
+		并不是所有的情况下都能执行视图的更新操作。当视图中包含如下内容时，视图的更新操作将不能被执行。<br />
+		(1) 视图中包含基本表中被定义为非空的列。<br />
+		(2) 在定义视图的 select 语句后的字段列表中使用了数学表达式。<br />
+		(3) 在定义视图的 select 语句后的字段列表中使用了聚合函数。<br />
+		(4) 在定义视图的 select 语句中使用了 distinct,union,top,group by 或 having 子句。
+	</p>
+	<h4>4. 删除视图</h4>
+	<p>
+		当视图不在需要时，可以将其删除，删除视图时，只能删除视图的定义，不会删除数据。
+	</p>
+	<code>
+		drop view [if exists]<br />
+		&emsp;&emsp;<span class="tip">view_name</span>[, <span class="tip">view_name</span>,...]<br />
+		&emsp;&emsp;[restrict|cascade];
+	</code>
+</body>
+</html>
