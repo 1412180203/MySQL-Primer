@@ -66,3 +66,9 @@ tr:first-child th {
 tr:last-child td {
 	border-bottom: 2px solid #000; 
 }
+
+.footer {
+	clear:both;
+	margin-top:2em;
+	text-align:center;
+}
